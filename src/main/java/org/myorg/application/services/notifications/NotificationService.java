@@ -19,4 +19,5 @@ public interface NotificationService {
 
     public List<Notification> getPendingNotificationsByMaxRetries(int retries);
     public List<Notification> getCompletedNotifications();
+    public List<Notification> getFailedNotifications();
 }

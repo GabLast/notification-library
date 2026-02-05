@@ -15,7 +15,7 @@
 4. Correr Libreria: Ir al root del proyecto y digitar ``` mvn compile exec:java ```
 
 ### Quick Start
-#### Ejemplo base en java -> com.example.notifications -> Main 
+#### Ejemplo base en main -> java -> com.example.notifications -> Main 
 
 1. Instanciar los servicios
 

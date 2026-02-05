@@ -77,10 +77,9 @@ public class NotificationServiceImpl implements NotificationService {
                     "Channel provider is null. Please verify the configured channel for the selected provider.");
         }
 
-        if (message == null || message.getMessage() == null
-                || message.getMessage().isBlank()) {
-            throw new InvalidDataFormat(
-                    "Message template has no message to send");
+        if (message == null || message.getMessage() == null || message.getMessage()
+                .isBlank()) {
+            throw new InvalidDataFormat("Message template has no message to send");
         }
 
         CompletableFuture<NotificationResponse> notificationFuture =
@@ -219,18 +218,17 @@ public class NotificationServiceImpl implements NotificationService {
                             synchronized (this) {
                                 notifications.add(notification);
                             }
-                        } else {
-                            notificationRetry.setRetryAttempts(
-                                    notificationRetry.getRetryAttempts() + 1);
                         }
 
-                        return NotificationResponse.builder().status(400)
-                                .body("Error: " + String.format(
-                                        "%s failed to send a %s notification: %s",
-                                        channelProvider.getProvider().getName(),
-                                        channelProvider.getChannel().getName(),
-                                        e.getMessage())).message(message)
-                                .channelProvider(channelProvider).build();
+                        NotificationResponse error =
+                                NotificationResponse.builder().status(400)
+                                        .body("Error: " + String.format(
+                                                "%s failed to send a %s notification: %s",
+                                                channelProvider.getProvider().getName(),
+                                                channelProvider.getChannel().getName(),
+                                                e.getMessage())).message(message)
+                                        .channelProvider(channelProvider).build();
+                        return error;
                     }
                 });
 
@@ -253,23 +251,39 @@ public class NotificationServiceImpl implements NotificationService {
                 if (channelProvider.getChannel().getName()
                         .equalsIgnoreCase(Channel.ChannelType.EMAIL.getName())) {
 
-                    integrationLoggerService.addFuture(
-                            sendNotification(userService.getAdministrator().getEmail(),
-                                    AppConfig.clientMails, AppConfig.ccMails, message,
-                                    channelProvider, false, null));
+                    try {
+                        sendNotification(
+                                userService.getAdministrator().getEmail(),
+                                AppConfig.clientMails, AppConfig.ccMails, message,
+                                channelProvider, false, null);
+                    } catch (Exception e) {
+                        LOGGER.info(
+                                "Caught Exception on batchSendNotificationsToConfiguredChannelProviders: "
+                                        + e.getMessage());
+                    }
 
                 } else if (channelProvider.getChannel().getName()
                         .equalsIgnoreCase(Channel.ChannelType.SLACK.getName())) {
+                    try {
+                        sendNotification("Business SLACK AllNotif",
+                                AppConfig.clientMails, null, message,
+                                channelProvider, false, null);
+                    } catch (Exception e) {
+                        LOGGER.info(
+                                "Caught Exception on batchSendNotificationsToConfiguredChannelProviders: "
+                                        + e.getMessage());
+                    }
 
-                    integrationLoggerService.addFuture(
-                            sendNotification("Business SLACK AllNotif",
-                                    AppConfig.clientMails, null, message, channelProvider,
-                                    false, null));
                 } else {
-                    integrationLoggerService.addFuture(
-                            sendNotification("Business AllNotif",
-                                    AppConfig.clientPhoneNumbers, null, message,
-                                    channelProvider, false, null));
+                    try {
+                        sendNotification("Business AllNotif",
+                                AppConfig.clientPhoneNumbers, null, message,
+                                channelProvider, false, null);
+                    } catch (Exception e) {
+                        LOGGER.info(
+                                "Caught Exception on batchSendNotificationsToConfiguredChannelProviders: "
+                                        + e.getMessage());
+                    }
                 }
             }
         }
@@ -284,6 +298,11 @@ public class NotificationServiceImpl implements NotificationService {
         return notifications.stream().filter(Notification::isSent).toList();
     }
 
+    public List<Notification> getFailedNotifications() {
+        return notifications.stream()
+                .filter(it -> !it.isSent() && it.getRetryAttempts() >= 3).toList();
+    }
+
     private void retryPendingNotifications() {
 
         scheduler.scheduleAtFixedRate(() -> {
@@ -291,6 +310,7 @@ public class NotificationServiceImpl implements NotificationService {
             List<Notification> list = getPendingNotificationsByMaxRetries(3);
             LOGGER.info("Retrying Notifications - Current Amount: " + list.size());
             for (Notification notification : list) {
+                notification.setRetryAttempts(notification.getRetryAttempts() + 1);
                 retryNotification(notification);
             }
         }, 15, 15, TimeUnit.SECONDS);
@@ -304,10 +324,9 @@ public class NotificationServiceImpl implements NotificationService {
         //adding random chance to fail
         boolean isFail = CommonUtils.generateBoolean50PercentTrue();
 
-        integrationLoggerService.addFuture(
-                sendNotification(notification.getCreator(), notification.getReceiver(),
-                        notification.getCc(), notification.getMessage(), channelProvider,
-                        isFail, notification));
+        sendNotification(notification.getCreator(), notification.getReceiver(),
+                notification.getCc(), notification.getMessage(), channelProvider,
+                isFail, notification);
     }
 
 }

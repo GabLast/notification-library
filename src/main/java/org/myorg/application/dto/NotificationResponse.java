@@ -8,6 +8,6 @@ import org.myorg.application.models.notifications.Message;
 public record NotificationResponse(Integer status, String body, Message message, ChannelProvider channelProvider) {
     @Override
     public String toString() {
-        return String.format("\nStatus: %d\tResponse: %s", status, body);
+        return String.format("\n--------------NotificationResponse------------\nStatus: %d\tResponse: %s", status, body);
     }
 }

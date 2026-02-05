@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IntegrationLoggerService {
 
-    public List<NotificationResponse> getResponses();
+    public List<NotificationResponse> getNotOKResponses();
     public void addFuture(CompletableFuture<NotificationResponse> future);
     public void verifyFutures();
 }

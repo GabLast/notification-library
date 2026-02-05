@@ -29,6 +29,10 @@ public class IntegrationLoggerServiceImpl implements IntegrationLoggerService {
         verifyFutures();
     }
 
+    public List<NotificationResponse> getNotOKResponses() {
+        return responses.stream().filter(it -> !it.status().equals(200)).toList();
+    }
+
     public static synchronized IntegrationLoggerServiceImpl getInstance() {
         if (instance == null) {
             instance = new IntegrationLoggerServiceImpl();
@@ -37,7 +41,9 @@ public class IntegrationLoggerServiceImpl implements IntegrationLoggerService {
     }
 
     public void addFuture(CompletableFuture<NotificationResponse> future) {
-        futures.add(future);
+        synchronized (this) {
+            futures.add(future);
+        }
     }
 
     public void verifyFutures() {
@@ -45,8 +51,10 @@ public class IntegrationLoggerServiceImpl implements IntegrationLoggerService {
             for (CompletableFuture<NotificationResponse> future : futures) {
                 if (future.isDone()) {
                     try {
-                        responses.add(future.get());
-                        futures.remove(future);
+                        synchronized (this) {
+                            responses.add(future.get());
+                            futures.remove(future);
+                        }
                     } catch (Exception e) {
                         LOGGER.severe(e.getMessage());
                     }

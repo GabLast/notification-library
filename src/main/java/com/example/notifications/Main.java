@@ -1,6 +1,5 @@
 package com.example.notifications;
 
-import org.myorg.application.dto.NotificationResponse;
 import org.myorg.application.models.notifications.Channel;
 import org.myorg.application.models.notifications.ChannelProvider;
 import org.myorg.application.models.notifications.Message;
@@ -8,13 +7,11 @@ import org.myorg.application.models.notifications.Notification;
 import org.myorg.application.models.notifications.Provider;
 import org.myorg.application.services.notifications.ChannelProviderService;
 import org.myorg.application.services.notifications.ChannelService;
-import org.myorg.application.services.notifications.IntegrationLoggerService;
 import org.myorg.application.services.notifications.MessageService;
 import org.myorg.application.services.notifications.NotificationService;
 import org.myorg.application.services.notifications.ProviderService;
 import org.myorg.application.services.notifications.impl.ChannelProviderServiceImpl;
 import org.myorg.application.services.notifications.impl.ChannelServiceImpl;
-import org.myorg.application.services.notifications.impl.IntegrationLoggerServiceImpl;
 import org.myorg.application.services.notifications.impl.MessageServiceImpl;
 import org.myorg.application.services.notifications.impl.NotificationServiceImpl;
 import org.myorg.application.services.notifications.impl.ProviderServiceImpl;
@@ -42,25 +39,26 @@ public class Main {
         NotificationService notificationService = NotificationServiceImpl.getInstance();
         ChannelProviderService channelProviderService =
                 ChannelProviderServiceImpl.getInstance();
-        IntegrationLoggerService integrationLoggerService =
-                IntegrationLoggerServiceImpl.getInstance();
+
 
         //scheduler to show data
         scheduler.scheduleAtFixedRate(() -> {
             List<Notification> list = notificationService.getCompletedNotifications();
-            System.out.println("\nAmount of processed Notifications: " + list.size());
+            System.out.println("\nSucessfull Notifications: " + list.size());
             list.forEach(it -> System.out.println(it.toString()));
+            System.out.println("\nFailed Notifications: " + notificationService.getFailedNotifications().size());
+
         }, 1, 10, TimeUnit.SECONDS);
 
         //scheduler to show non 200 api responses
-        logScheduler.scheduleAtFixedRate(() -> {
-
-            //Muestra los errores generados por envío de notificaciones
-            List<NotificationResponse> list =
-                    integrationLoggerService.getResponses().stream()
-                            .filter(it -> it.status() != 200).toList();
-            list.forEach(it -> System.out.println(it.toString()));
-        }, 1, 10, TimeUnit.SECONDS);
+//        logScheduler.scheduleAtFixedRate(() -> {
+//
+//            //Muestra los errores generados por envío de notificaciones
+//            List<NotificationResponse> list =
+//                    integrationLoggerService.getNotOKResponses();
+//            System.out.println("\nLog de Errores de API: " + list.size() + " errores");
+//            list.forEach(it -> System.out.println(it.toString()));
+//        }, 1, 10, TimeUnit.SECONDS);
 
         //Create messages to send
         List<Message> messages = new ArrayList<>();
@@ -139,6 +137,14 @@ public class Main {
                 messages.stream().filter(it -> it.getSubject() != null && !it.getSubject()
                         .isBlank()).toList(),
                 List.of(twilioMail, twilioSMS, mailgunMail, newProviderMail));
+
+        //Generar notificacion fallida para retry
+        //max 3 retries. si falla 3 veces, la notificacion se pierde
+        notificationService.sendNotification("System Notification", "+18091231212", null,
+                messageService.createMessage(
+                        Message.builder().subject("Retry Notification")
+                                .message("This notification has to be retried").build()),
+                twilioSMS, true, null);
 
     }
 }

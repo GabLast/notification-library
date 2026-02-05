@@ -9,8 +9,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -76,14 +76,6 @@ public class CommonUtils {
     }
 
     public static boolean generateBoolean50PercentTrue() {
-        Random random = new Random();
-        int min = 0;
-        int max = 1;
-
-        // nextInt(n) generates a number from 0 up to (but not including) n.
-        // The formula for a range [min, max] is nextInt(max - min + 1) + min.
-        int randomNumber = random.nextInt(max - min + 1) + min;
-
-        return randomNumber == 1;
+        return ThreadLocalRandom.current().nextBoolean();
     }
 }

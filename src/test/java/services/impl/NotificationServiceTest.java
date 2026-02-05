@@ -20,6 +20,7 @@ import org.myorg.application.services.notifications.impl.ProviderServiceImpl;
 import org.myorg.application.services.security.UserService;
 import org.myorg.application.utils.CommonUtils;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class NotificationServiceTest {
@@ -78,8 +79,8 @@ public class NotificationServiceTest {
 
         NotificationResponse goodResponse = service
                 .sendNotification(userService.getAdministrator().getEmail(),
-                        AppConfig.clientMails, AppConfig.ccMails, messageNormal, emailTwilio, false,
-                        null).get();
+                        AppConfig.clientMails, AppConfig.ccMails, messageNormal,
+                        emailTwilio, false, null).get();
         Assertions.assertNotNull(goodResponse);
         Assertions.assertEquals(200, goodResponse.status());
 
@@ -88,14 +89,40 @@ public class NotificationServiceTest {
                         AppConfig.clientMails, null, messageNoSubject, smsTwilio, false,
                         null).get();
         Assertions.assertNotNull(badResponse2);
-        Assertions.assertNotEquals(200, badResponse2.status()); //due to receivers being emails for sms (sms requires phone number(s)
+        Assertions.assertNotEquals(200,
+                badResponse2.status()); //due to receivers being emails for sms (sms requires phone number(s)
 
         NotificationResponse goodResponse2 = service
                 .sendNotification(userService.getAdministrator().getPhoneNumber(),
-                        AppConfig.clientPhoneNumbers, null, messageNoSubject, smsTwilio, false,
-                        null).get();
+                        AppConfig.clientPhoneNumbers, null, messageNoSubject, smsTwilio,
+                        false, null).get();
         Assertions.assertNotNull(goodResponse2);
         Assertions.assertEquals(200, goodResponse2.status());
+
     }
 
+    @Test
+    void batchSendNotificationsToConfiguredChannelProviders() {
+        Message messageNormal = messageService.createMessage(
+                Message.builder().subject("Subject").message("Body").build());
+
+        ChannelProvider emailTwilio = channelProviderService.configureChannelProvider(
+                channelService.findChannelByName("E-mail"),
+                providerService.findProviderByName("Twilio"),
+                CommonUtils.generateApiKey(), null);
+
+        Assertions.assertDoesNotThrow(
+                () -> service.batchSendNotificationsToConfiguredChannelProviders(
+                        List.of(messageNormal), List.of(emailTwilio)));
+    }
+
+    @Test
+    void getCompletedNotifications() {
+        Assertions.assertNotNull(service.getCompletedNotifications());
+    }
+
+    @Test
+    void getFailedNotifications() {
+        Assertions.assertNotNull(service.getFailedNotifications());
+    }
 }
