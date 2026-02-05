@@ -15,7 +15,8 @@
 4. Correr Libreria: Ir al root del proyecto y digitar ``` mvn compile exec:java ```
 
 ### Quick Start
-#### Ejemplo base en main -> java -> com.example.notifications -> Main 
+
+#### Ejemplo base en main -> java -> com.example.notifications -> Main
 
 1. Instanciar los servicios
 
@@ -116,40 +117,45 @@ Provider newProvider = providerService.addProvider(Provider.builder().name("New 
 
 1. NotificationService
 
+*batchSendNotificationsToConfiguredChannelProviders* Envia un listado de templates de mensajes a las integraciones de
+canales-proveedores configuradas.
+En caso de no tener configuraciones hechas y enviar configuredProviders como null, se usan las generadas internamente
+en la librería
+
 ```
 batchSendNotificationsToConfiguredChannelProviders(
 List<Message> messages,
 List<ChannelProvider> configuredProviders)
 ```
 
-- Envia un listado de templates de mensajes a las integraciones de canales-proveedores configuradas.
-  En caso de no tener configuraciones hechas y enviar configuredProviders como null, se usan las generadas internamente
-  en la librería
+*sendNotification* Función base para enviar alguna notificación hacia algún canal mediante algun proveedor.
 
 ```
 notificationService.sendNotification(messageCreator, receiver, cc, message, configuracion, forceError, null))
 ```
-- Función base para enviar alguna notificación hacia algún canal mediante algun proveedor.
 
 2. ChannelProviderService
+
+*configureChannelProvider* Crea la configuración a utilizar para enviar la notificación mediante un proveedor
 
 ```
 ChannelProvider twilioMail = channelProviderService.configureChannelProvider(email, twilio,
                         CommonUtils.generateApiKey(), "https://hooks.slack.com/services/123key");
 ```
-- Crea la configuración a utilizar para enviar la notificación mediante un proveedor
 
 3. MessageService
+
+*createMessage* Crea un template para el mensaje que será notificado
 
 ```
 Message message = messageService.createMessage(Message.builder().subject("Subject #1")
 .contentType("text/plain")
 .message("Message body #0").build())
 ```
-- Crea un template para el mensaje que será notificado
 
 ### Seguridad
 
 1. API Keys / Webhooks dependerán del proveedor.
 2. EVITAR GUARDAR TEMPLATES DE MENSAJES CON LAS CREDENCIALES DEL PROVEEDOR. El Message template es solo para guardar
-los mensajes que se piensan enviar. Cualquier configuración solo se guarda en ChannelProvider mediante ChannelProviderService.
+   los mensajes que se piensan enviar. Cualquier configuración solo se guarda en ChannelProvider mediante
+   ChannelProviderService.
