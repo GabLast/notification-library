@@ -26,6 +26,9 @@ public class ChannelServiceTest {
     void addChannel() {
         Assertions.assertNotNull(channelService.addChannel(Channel.builder().name("Channel").build()));
 
+        //to restore channel list state
+        channelService.removeChannel("Channel");
+
         Assertions.assertThrows(ResourceNotFoundException.class, () ->
                 channelService.addChannel(Channel.builder().build()));
         Assertions.assertThrows(ResourceNotFoundException.class, () ->
@@ -34,7 +37,8 @@ public class ChannelServiceTest {
 
     @Test
     void removeChannel() {
-        Assertions.assertTrue(channelService.removeChannel("SMS"));
+        Assertions.assertNotNull(channelService.addChannel(Channel.builder().name("Channel").build()));
+        Assertions.assertTrue(channelService.removeChannel("Channel"));
         Assertions.assertThrows(ResourceNotFoundException.class,() -> channelService.removeChannel("aaaaaaaaaaaaa"));
     }
 }

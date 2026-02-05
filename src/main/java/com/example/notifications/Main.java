@@ -146,5 +146,19 @@ public class Main {
                                 .message("This notification has to be retried").build()),
                 twilioSMS, true, null);
 
+
+        //Resultados Esperados:
+        //Total de 14 notificaciones enviadas con certeza
+        //1 notificacion que puede fallar un maximo de 3 veces. Si lo hace, el total
+        //sigue siendo 14 y 1 fallida. Si el retry funciona, el total sube a 15 notificaciones
+        try {
+            Thread.sleep(50 * 1000); // dejar que fluya por 50 segundos, luego apagar los schedulers
+        } catch (InterruptedException e) {
+            System.err.println("Main thread interrupted");
+        } finally {
+            scheduler.shutdownNow();
+            logScheduler.shutdownNow();
+        }
+
     }
 }
