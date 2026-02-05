@@ -25,6 +25,10 @@ import java.util.concurrent.ExecutionException;
 
 public class NotificationServiceTest {
 
+    private final ChannelService         channelService         =
+            ChannelServiceImpl.getInstance();
+    private final ProviderService        providerService        =
+            ProviderServiceImpl.getInstance();
     private final NotificationService    service                =
             NotificationServiceImpl.getInstance();
     private final MessageService         messageService         =
@@ -33,10 +37,6 @@ public class NotificationServiceTest {
             UserService.getInstance();
     private final ChannelProviderService channelProviderService =
             ChannelProviderServiceImpl.getInstance();
-    private final ChannelService         channelService         =
-            ChannelServiceImpl.getInstance();
-    private final ProviderService        providerService        =
-            ProviderServiceImpl.getInstance();
 
     @Test
     void sendNotification() throws ExecutionException, InterruptedException {
@@ -98,7 +98,6 @@ public class NotificationServiceTest {
                         false, null).get();
         Assertions.assertNotNull(goodResponse2);
         Assertions.assertEquals(200, goodResponse2.status());
-
     }
 
     @Test

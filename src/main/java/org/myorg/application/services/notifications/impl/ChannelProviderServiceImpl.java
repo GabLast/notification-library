@@ -71,6 +71,14 @@ public class ChannelProviderServiceImpl implements ChannelProviderService {
             throw new InvalidDataFormat("Configuration webhook is not a valid URL");
         }
 
+        if(channel == null) {
+            throw new NullPointerException("Channel can not be null");
+        }
+
+        if(provider == null) {
+            throw new NullPointerException("Provider can not be null");
+        }
+
         ChannelProvider config =
                 ChannelProvider.builder().channel(channel).provider(provider)
                         .apiKey(apiKey)
