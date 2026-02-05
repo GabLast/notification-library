@@ -113,6 +113,8 @@ Por defecto se tienen a Twilio y a Mailgun. Se puede agregar un nuevo proveedor 
 Provider newProvider = providerService.addProvider(Provider.builder().name("New Provider").build());
 ```
 
+#### Debe validar la documentación del proveedor para ver si dicho proveedor tiene una integración para los canales disponibles. Ej: "New Provider" no tiene una integración con el canal "Slack", por lo que no debería ser agregado como una nueva configuración.
+
 ### API Reference
 
 1. NotificationService
